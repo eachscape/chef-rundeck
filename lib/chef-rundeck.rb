@@ -37,13 +37,28 @@ class ChefRundeck < Sinatra::Base
   get '/' do
     content_type 'text/xml'
     response = '<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE project PUBLIC "-//DTO Labs Inc.//DTD Resources Document 1.0//EN" "project.dtd"><project>'
+    primary_nodes = {}
     Chef::Node.list(true).each do |node_array|
       begin
         node = node_array[1]
+        next unless node[:fqdn]
+        puts node
         #--
         # Certain features in Rundeck require the osFamily value to be set to 'unix' to work appropriately. - SRK
         #++
         os_family = node[:kernel][:os] =~ /windows/i ? 'windows' : 'unix'
+        env = node.chef_environment
+        roles = node.run_list.roles
+        tags = []
+        roles.each do |r|
+          primary_nodes[env] ||= {}
+          if primary_nodes[env][r].nil?
+            primary_nodes[env][r] = node
+            tags << "#{r}-primary"
+          else
+            tags << "#{r}-secondary"
+          end
+        end
         response << <<-EOH
   <node name="#{xml_escape(node[:fqdn])}" 
         type="Node" 
@@ -52,12 +67,14 @@ class ChefRundeck < Sinatra::Base
         osFamily="#{xml_escape(os_family)}"
         osName="#{xml_escape(node[:platform])}"
         osVersion="#{xml_escape(node[:platform_version])}"
-        tags="#{xml_escape([node.chef_environment, node.run_list.roles.join(',')].join(','))}"
-        username="#{xml_escape(ChefRundeck.username)}"
+        tags="#{xml_escape(([env] + tags + roles).join(','))}"
+        username="#{xml_escape(node[:fqdn].include?('tryout') ? 'eachscape' : 'deploy')}"
         hostname="#{xml_escape(node[:fqdn])}"
         editUrl="#{xml_escape(ChefRundeck.web_ui_url)}/nodes/#{xml_escape(node.name)}/edit"/>
 EOH
-      rescue
+      rescue Exception => e
+        puts "#{e}: #{e.message}"
+        puts e.backtrace.join("\n")
         next
       end
     end

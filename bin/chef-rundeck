@@ -27,7 +27,7 @@ class ChefRundeckCLI
    option :config_file,
       :short => "-c CONFIG",
       :long  => "--config CONFIG",
-      :default => 'config.rb',
+      :default => '/etc/chef/client.rb',
       :description => "The Chef configuration file to use"
 
    option :username,
@@ -39,6 +39,7 @@ class ChefRundeckCLI
    option :web_ui_url,
      :short => "-w WEB_UI_URL",
      :long => "--web-ui-url WEB_UI_URL",
+     :default => "https://manage.opscode.com",
      :description => "The base URL of the Chef Web UI"
 
    option :port,
