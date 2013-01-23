@@ -68,7 +68,7 @@ class ChefRundeck < Sinatra::Base
         osName="#{xml_escape(node[:platform])}"
         osVersion="#{xml_escape(node[:platform_version])}"
         tags="#{xml_escape(([env] + tags + roles).join(','))}"
-        username="#{xml_escape(node[:fqdn].include?('tryout') ? 'eachscape' : 'deploy')}"
+        username="#{xml_escape('deploy')}"
         hostname="#{xml_escape(node[:fqdn])}"
         editUrl="#{xml_escape(ChefRundeck.web_ui_url)}/nodes/#{xml_escape(node.name)}/edit"/>
 EOH
